@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from '../lib/router';
 import { useData } from '../lib/data';
 import { fmtDate } from '../lib/labels';
@@ -7,6 +8,9 @@ import type { CveMap, RuleSlim } from '../types';
 export function CveDetail({ id }: { id: string }) {
   const cves = useData<CveMap>('cves.json');
   const idx = useData<RuleSlim[]>('rules-index.json');
+  useEffect(() => {
+    document.title = `${id} 탐지 룰 — Sprout Security Detection Hub`;
+  }, [id]);
   if (!cves.data || !idx.data) return <Loading error={cves.error || idx.error} />;
   const c = cves.data[id];
   if (!c) return <p className="empty">{id}는 이 사이트의 데이터에 없습니다. 룰이 참조하지 않고 KEV에도 없는 CVE입니다. <a href={`https://nvd.nist.gov/vuln/detail/${id}`} target="_blank" rel="noreferrer">NVD에서 보기 ↗</a></p>;

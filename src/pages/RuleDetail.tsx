@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from '../lib/router';
 import { useData } from '../lib/data';
 import { STATUS, autoSummary, fmtDate, KIND_KO, logsourceLabel, tacticKo } from '../lib/labels';
@@ -13,6 +14,10 @@ export function RuleDetail({ id }: { id: string }) {
   const { data: r, error } = useData<Rule>(`rules/${id}.json`);
   const attack = useData<Attack>('attack.json').data;
   const cves = useData<CveMap>('cves.json').data;
+
+  useEffect(() => {
+    if (r) document.title = `${r.title} — Sigma 탐지 룰 | Sprout Security Detection Hub`;
+  }, [r]);
 
   if (error) return <p className="empty">이 룰을 찾을 수 없습니다. 삭제됐거나 ID가 다를 수 있습니다. <Link to="/rules">룰 목록으로</Link></p>;
   if (!r) return <Loading />;

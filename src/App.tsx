@@ -17,7 +17,10 @@ const BASE = 'Sprout Security Detection Hub';
 export default function App() {
   const { path, search } = useLocation();
   useEffect(() => {
-    document.title = BASE + ' — Sigma 탐지 룰 한국어 해설';
+    // 룰·CVE 상세는 각 페이지가 자기 제목을 정합니다
+    if (/^\/(rules|cves)\/./.test(path)) return;
+    const NAMES: Record<string, string> = { '/rules': '룰 카탈로그', '/coverage': '커버리지 지도', '/weekly': '주간 신규 룰', '/gaps': '탐지 공백(KEV)', '/drafts': '룰 초안', '/isms-p': 'ISMS-P 연결', '/about': '소개·출처' };
+    document.title = NAMES[path] ? `${NAMES[path]} — ${BASE}` : `${BASE} — Sigma 탐지 룰 한국어 해설`;
   }, [path]);
 
   let page;

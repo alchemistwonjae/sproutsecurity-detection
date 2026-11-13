@@ -7,7 +7,7 @@
     "collect": "node scripts/collect.mjs",
     "convert": "python3 scripts/convert.py",
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
