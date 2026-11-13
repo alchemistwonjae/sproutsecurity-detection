@@ -55,13 +55,20 @@ export function Layout({ path, children }: { path: string; children: ReactNode }
             {dark ? '☀' : '☾'}
           </button>
         </div>
-        <nav className="wrap nav" aria-label="주 메뉴">
-          {NAV.map((n) => (
-            <Link key={n.to} to={n.to} className={n.to === '/' ? (path === '/' ? 'on' : '') : path.startsWith(n.to) ? 'on' : ''} aria-current={n.to === path ? 'page' : undefined}>
-              {n.label}
-            </Link>
-          ))}
-          <a className="nav-out" href={PORTAL_URL}>오늘도 무사히(정보보호포털) ↗</a>
+        <nav className="gnb-nav" aria-label="주 메뉴">
+          <ul className="tabs">
+            {NAV.map((n) => {
+              const on = n.to === '/' ? path === '/' : path.startsWith(n.to);
+              return (
+                <li key={n.to}>
+                  <Link to={n.to} aria-current={on ? 'page' : undefined}>{n.label}</Link>
+                </li>
+              );
+            })}
+            <li className="tabs-out">
+              <a href={PORTAL_URL}><svg className="brand-mark mark-sm" viewBox="16 10 32 44" aria-hidden="true"><polygon className="lt" points="16,10 48,10 48,17 23,17 23,28.5 33.24,28.5 26.24,35.5 16,35.5" /><polygon className="lg" points="37.76,28.5 48,28.5 48,54 16,54 16,47 41,47 41,35.5 30.76,35.5" /></svg>오늘도 무사히(정보보호포털) ↗</a>
+            </li>
+          </ul>
         </nav>
       </header>
       <main id="main" className="wrap">{children}</main>

@@ -111,17 +111,20 @@ ul { padding-left: 20px; margin: 0 0 12px; }
 .gsearch input { width: 100%; height: 48px; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; font-size: 16px; }
 .gsearch input::placeholder { color: var(--muted); }
 .icon-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 18px; cursor: pointer; }
-.nav { display: flex; flex-wrap: wrap; gap: 4px 4px; padding: 0 0 10px; }
-.nav a { padding: 8px 14px; border-radius: 999px; color: var(--text-2); text-decoration: none; font-weight: 600; font-size: 15px; }
-.nav a:hover { background: var(--surface); }
-.nav a.on { background: var(--accent-soft); color: var(--accent-strong); }
-.nav .nav-out { margin-left: auto; font-weight: 500; font-size: 14px; }
+.gnb-nav { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); border-top: 1px solid var(--line); }
+.gnb-nav ul { list-style: none; margin: 0 auto; padding: 0; width: min(1120px, 100% - 40px); display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.gnb-nav ul::-webkit-scrollbar { display: none; }
+.gnb-nav a { display: block; white-space: nowrap; text-decoration: none; }
+.tabs a { padding: 14px 18px; font-size: 17px; font-weight: 700; color: var(--text-2); border-bottom: 3px solid transparent; }
+.tabs a:hover { color: var(--text); }
+.tabs a[aria-current='page'] { color: var(--accent-strong); border-bottom-color: var(--accent); }
+.tabs .tabs-out { margin-left: auto; }
 @media (max-width: 900px) {
   .gnb-top { grid-template-columns: 1fr auto; padding: 16px 0 12px; }
   .gsearch { grid-column: 1 / -1; grid-row: 2; max-width: none; height: 48px; }
   .gsearch input { height: 44px; }
   .brand strong { font-size: 26px; }
-  .nav .nav-out { margin-left: 0; }
+  .tabs a { padding: 12px 14px; font-size: 15.5px; }
 }
 
 main { padding: 28px 0 56px; min-height: 60vh; }
@@ -287,3 +290,6 @@ details summary { cursor: pointer; color: var(--accent-strong); font-weight: 600
 .chips > span { font-size: 13px; font-weight: 600; color: var(--muted); margin-right: 4px; }
 .chip-link { padding: 7px 14px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-weight: 600; font-size: 14.5px; text-decoration: none; }
 .chip-link:hover { filter: brightness(0.96); }
+
+.brand-mark.mark-sm { height: 20px; margin-right: 8px; }
+.tabs .tabs-out a { display: flex; align-items: center; }
