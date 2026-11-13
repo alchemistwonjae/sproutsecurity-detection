@@ -9,11 +9,11 @@ import type { Meta } from '../types';
 const NAV = [
   { to: '/', label: '홈' },
   { to: '/rules', label: '룰 카탈로그' },
-  { to: '/coverage', label: '커버리지 지도' },
-  { to: '/weekly', label: '주간 신규 룰' },
-  { to: '/gaps', label: '탐지 공백(KEV)' },
+  { to: '/coverage', label: '커버리지' },
+  { to: '/weekly', label: '주간 신규' },
+  { to: '/gaps', label: '탐지 공백' },
   { to: '/drafts', label: '룰 초안' },
-  { to: '/isms-p', label: 'ISMS-P 연결' },
+  { to: '/isms-p', label: 'ISMS-P' },
   { to: '/about', label: '소개·출처' },
 ];
 
@@ -66,7 +66,7 @@ export function Layout({ path, children }: { path: string; children: ReactNode }
               );
             })}
             <li className="tabs-out">
-              <a href={PORTAL_URL}><svg className="brand-mark mark-sm" viewBox="16 10 32 44" aria-hidden="true"><polygon className="lt" points="16,10 48,10 48,17 23,17 23,28.5 33.24,28.5 26.24,35.5 16,35.5" /><polygon className="lg" points="37.76,28.5 48,28.5 48,54 16,54 16,47 41,47 41,35.5 30.76,35.5" /></svg>오늘도 무사히(정보보호포털) ↗</a>
+              <a href={PORTAL_URL}><svg className="brand-mark mark-sm" viewBox="16 10 32 44" aria-hidden="true"><polygon className="lt" points="16,10 48,10 48,17 23,17 23,28.5 33.24,28.5 26.24,35.5 16,35.5" /><polygon className="lg" points="37.76,28.5 48,28.5 48,54 16,54 16,47 41,47 41,35.5 30.76,35.5" /></svg>오늘도 무사히 ↗</a>
             </li>
           </ul>
         </nav>

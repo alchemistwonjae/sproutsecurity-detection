@@ -115,7 +115,7 @@ ul { padding-left: 20px; margin: 0 0 12px; }
 .gnb-nav ul { list-style: none; margin: 0 auto; padding: 0; width: min(1120px, 100% - 40px); display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
 .gnb-nav ul::-webkit-scrollbar { display: none; }
 .gnb-nav a { display: block; white-space: nowrap; text-decoration: none; }
-.tabs a { padding: 14px 18px; font-size: 17px; font-weight: 700; color: var(--text-2); border-bottom: 3px solid transparent; }
+.tabs a { padding: 14px 14px; font-size: 16px; font-weight: 700; color: var(--text-2); border-bottom: 3px solid transparent; }
 .tabs a:hover { color: var(--text); }
 .tabs a[aria-current='page'] { color: var(--accent-strong); border-bottom-color: var(--accent); }
 .tabs .tabs-out { margin-left: auto; }
@@ -293,3 +293,4 @@ details summary { cursor: pointer; color: var(--accent-strong); font-weight: 600
 
 .brand-mark.mark-sm { height: 20px; margin-right: 8px; }
 .tabs .tabs-out a { display: flex; align-items: center; }
+.tabs li { flex: none; }
