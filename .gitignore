@@ -1,0 +1,11 @@
+node_modules
+dist
+.cache
+.venv
+__pycache__
+.DS_Store
+.env
+.env.*
+*.log
+# 수집 결과는 빌드 때마다 새로 만듭니다
+public/data

@@ -1,0 +1,48 @@
+[
+ {
+  "id": "6c9f6d9d-aabc-4bce-a97c-1dfb5ce5bfd3",
+  "product": "Ivanti Connect Secure",
+  "cves": [
+   "CVE-2023-46805",
+   "CVE-2024-21887"
+  ],
+  "yaml": "title: Ivanti Connect Secure Path Traversal Auth Bypass - CVE-2023-46805 / CVE-2024-21887\nid: 6c9f6d9d-aabc-4bce-a97c-1dfb5ce5bfd3\nstatus: experimental\ndescription: |\n    Detects web requests to the Ivanti Connect Secure REST API that use the path traversal prefix\n    /api/v1/totp/user-backup-code/../../ . Public exploit chains for CVE-2023-46805 (authentication bypass)\n    and CVE-2024-21887 (command injection) reach internal endpoints through this prefix.\n    DRAFT: not validated against real logs.\nreferences:\n    - https://nvd.nist.gov/vuln/detail/CVE-2023-46805\n    - https://nvd.nist.gov/vuln/detail/CVE-2024-21887\nauthor: Sprout Security (draft written with Claude, unreviewed)\ndate: 2026-11-13\ntags:\n    - attack.initial-access\n    - attack.t1190\n    - cve.2023-46805\n    - cve.2024-21887\n    - detection.emerging-threats\nlogsource:\n    category: webserver\ndetection:\n    selection:\n        c-uri|contains: '/api/v1/totp/user-backup-code/../../'\n    condition: selection\nfalsepositives:\n    - Vulnerability scanners and authorized penetration tests\nlevel: high\n",
+  "ko": {
+   "summary": "Ivanti Connect Secure(VPN) 장비의 REST API에 경로 우회 접두어를 붙여 접근하는 요청을 잡는 초안입니다.",
+   "what": "요청 주소에 '/api/v1/totp/user-backup-code/../../'가 들어 있으면 경보를 냅니다. 이 접두어는 CVE-2023-46805(인증 우회)와 CVE-2024-21887(명령 주입)을 이어 쓰는 공개된 공격 사례에서 내부 기능에 접근할 때 쓰이는 모양입니다.",
+   "analogy": "손님용 출입문 주소 뒤에 '../../'를 붙여 직원 전용 복도로 슬쩍 넘어가는 시도를 문 앞 CCTV가 알아채는 것입니다.",
+   "fp": "취약점 스캐너나 승인된 모의해킹이 같은 주소를 두드리면 걸립니다.",
+   "check": "장비가 패치된 버전인지, 요청 직후 장비 내부에서 비정상 설정 변경이나 외부 연결이 있었는지, 제조사의 침해 점검 도구 결과를 확인하세요. 웹 로그에 요청 주소가 그대로 남는지(필드 이름 c-uri)도 먼저 확인해야 합니다."
+  }
+ },
+ {
+  "id": "e212000b-9416-4d72-b15d-dd01d8c0c355",
+  "product": "Cisco ASA",
+  "cves": [
+   "CVE-2018-0296"
+  ],
+  "yaml": "title: Cisco ASA WebVPN Directory Traversal Information Disclosure - CVE-2018-0296\nid: e212000b-9416-4d72-b15d-dd01d8c0c355\nstatus: experimental\ndescription: |\n    Detects requests to the Cisco ASA WebVPN endpoint /+CSCOE+/files/file_list.json with parameters used\n    to list session data, and requests that use the /+CSCOU+/../+CSCOE+/ traversal prefix, seen in\n    public exploitation of CVE-2018-0296.\n    DRAFT: not validated against real logs.\nreferences:\n    - https://nvd.nist.gov/vuln/detail/CVE-2018-0296\nauthor: Sprout Security (draft written with Claude, unreviewed)\ndate: 2026-11-13\ntags:\n    - attack.initial-access\n    - attack.t1190\n    - cve.2018-0296\n    - detection.emerging-threats\nlogsource:\n    category: webserver\ndetection:\n    selection_endpoint:\n        c-uri|contains: '/+CSCOE+/files/file_list.json'\n    selection_param:\n        c-uri|contains:\n            - 'path=/sessions'\n            - 'path=%2bCSCOE%2b'\n            - 'path=/+CSCOE+'\n    selection_traversal:\n        c-uri|contains: '/+CSCOU+/../+CSCOE+/'\n    condition: (selection_endpoint and selection_param) or selection_traversal\nfalsepositives:\n    - Vulnerability scanners and authorized penetration tests\n    - Legitimate WebVPN file browsing (the endpoint itself is part of the product)\nlevel: high\n",
+  "ko": {
+   "summary": "Cisco ASA의 WebVPN 파일 목록 기능을 이용해 세션 정보를 읽으려는 요청(CVE-2018-0296)을 잡는 초안입니다.",
+   "what": "'/+CSCOE+/files/file_list.json' 주소에 세션 정보를 가리키는 값(path=/sessions 등)이 붙거나, '/+CSCOU+/../+CSCOE+/' 경로 우회 접두어가 보이면 경보를 냅니다.",
+   "analogy": "안내 데스크의 방문 기록부를 보여 달라고 하면서 '뒷문으로 돌아서' 들어오는 요청을 알아보는 것입니다.",
+   "fp": "엔드포인트 자체가 제품의 정상 기능에 속해서, 정상 파일 탐색 요청이 걸릴 수 있습니다. 스캐너와 승인된 모의해킹도 같은 주소를 요청합니다.",
+   "check": "요청 출발지가 사내 스캐너인지, 장비 펌웨어가 취약점 수정 버전인지 확인하세요. 주소의 매개변수 값이 실제 세션 정보를 가리키는지 로그 원문으로 대조해야 합니다."
+  }
+ },
+ {
+  "id": "364c434b-c133-4028-ae4c-4f05ce46563b",
+  "product": "Fortinet FortiOS",
+  "cves": [
+   "CVE-2022-40684"
+  ],
+  "yaml": "title: Fortinet FortiOS Administrative Interface Auth Bypass - CVE-2022-40684\nid: 364c434b-c133-4028-ae4c-4f05ce46563b\nstatus: experimental\ndescription: |\n    Detects requests to the FortiOS administrative REST API path /api/v2/cmdb/system/admin that carry\n    the User-Agent \"Report Runner\", the value used in public exploitation of CVE-2022-40684.\n    DRAFT: not validated against real logs.\nreferences:\n    - https://nvd.nist.gov/vuln/detail/CVE-2022-40684\nauthor: Sprout Security (draft written with Claude, unreviewed)\ndate: 2026-11-13\ntags:\n    - attack.initial-access\n    - attack.t1190\n    - cve.2022-40684\n    - detection.emerging-threats\nlogsource:\n    category: webserver\ndetection:\n    selection:\n        c-uri|contains: '/api/v2/cmdb/system/admin'\n        cs-user-agent: 'Report Runner'\n    condition: selection\nfalsepositives:\n    - Unlikely\nlevel: critical\n",
+  "ko": {
+   "summary": "FortiOS 관리 화면 API에 'Report Runner'라는 사용자 에이전트로 접근하는 요청(CVE-2022-40684)을 잡는 초안입니다.",
+   "what": "요청 주소에 '/api/v2/cmdb/system/admin'이 있고 User-Agent 값이 정확히 'Report Runner'이면 경보를 냅니다. 공개된 공격 사례에서 이 값이 쓰였다는 점에 기댄 룰이라, 공격자가 값을 바꾸면 놓칩니다.",
+   "analogy": "'방문증에 늘 같은 가짜 이름을 쓰는 침입자'를 이름으로만 잡는 방식이라, 이름을 바꾸면 통과합니다.",
+   "fp": "원본 기준으로는 정상 요청과 겹칠 가능성이 낮다고 봤지만 검증하지 않았습니다.",
+   "check": "관리 인터페이스가 인터넷에 열려 있었는지, 장비 관리자 계정이나 SSH 키가 새로 추가되지 않았는지, 펌웨어가 패치된 버전인지 확인하세요. 장비의 웹 접근 로그를 SIEM으로 보내고 있어야 이 룰이 동작합니다."
+  }
+ }
+]

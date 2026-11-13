@@ -1,0 +1,6 @@
+pysigma>=1.0
+pysigma-backend-splunk
+pysigma-backend-elasticsearch
+pysigma-backend-kusto
+pysigma-pipeline-windows
+pysigma-pipeline-sysmon

@@ -1,0 +1,45 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # 매일 오전 9시 17분(KST): SigmaHQ·KEV 최신 데이터로 다시 빌드·배포
+    - cron: '17 0 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: npm ci
+      - run: pip install -r requirements.txt
+      - name: Collect (SigmaHQ, KEV, ATT&CK)
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: npm run collect
+      - name: Convert (Splunk / Elastic / KQL)
+        run: npm run convert
+      - run: npm run build
+      - name: Deploy to Cloudflare Workers
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

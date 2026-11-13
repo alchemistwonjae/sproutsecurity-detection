@@ -1,0 +1,8 @@
+{
+  "name": "sproutsecurity-detection",
+  "compatibility_date": "2025-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
