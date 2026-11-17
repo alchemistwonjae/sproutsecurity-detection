@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from '../lib/router';
 import { SearchBox } from './SearchBox';
 import { applyTheme, readTheme, type Theme } from '../theme';
-import { NOTICE, ISSUE_URL, PORTAL_URL } from '../lib/notices';
+import { NOTICE, ISSUE_URL, PORTAL_URL, PLUGCHECK_URL } from '../lib/notices';
 import { useData } from '../lib/data';
 import type { Meta } from '../types';
 
@@ -67,6 +67,9 @@ export function Layout({ path, children }: { path: string; children: ReactNode }
             })}
             <li className="tabs-out">
               <a href={PORTAL_URL}><svg className="brand-mark mark-sm" viewBox="16 10 32 44" aria-hidden="true"><polygon className="lt" points="16,10 48,10 48,17 23,17 23,28.5 33.24,28.5 26.24,35.5 16,35.5" /><polygon className="lg" points="37.76,28.5 48,28.5 48,54 16,54 16,47 41,47 41,35.5 30.76,35.5" /></svg>오늘도 무사히 ↗</a>
+            </li>
+            <li className="tabs-out">
+              <a href={PLUGCHECK_URL}><svg className="brand-mark mark-sm" viewBox="16 10 32 44" aria-hidden="true"><polygon className="lt" points="16,10 48,10 48,17 23,17 23,28.5 33.24,28.5 26.24,35.5 16,35.5" /><polygon className="lg" points="37.76,28.5 48,28.5 48,54 16,54 16,47 41,47 41,35.5 30.76,35.5" /></svg>PlugCheck ↗</a>
             </li>
           </ul>
         </nav>

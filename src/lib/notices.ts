@@ -12,3 +12,4 @@ export const NOTICE = {
 };
 export const ISSUE_URL = 'https://github.com/alchemistwonjae/sproutsecurity-detection/issues/new';
 export const PORTAL_URL = 'https://portal.sproutsecurity.app';
+export const PLUGCHECK_URL = 'https://plugcheck.sproutsecurity.app';

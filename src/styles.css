@@ -119,6 +119,7 @@ ul { padding-left: 20px; margin: 0 0 12px; }
 .tabs a:hover { color: var(--text); }
 .tabs a[aria-current='page'] { color: var(--accent-strong); border-bottom-color: var(--accent); }
 .tabs .tabs-out { margin-left: auto; }
+.tabs .tabs-out + .tabs-out { margin-left: 0; }
 @media (max-width: 900px) {
   .gnb-top { grid-template-columns: 1fr auto; padding: 16px 0 12px; }
   .gsearch { grid-column: 1 / -1; grid-row: 2; max-width: none; height: 48px; }
