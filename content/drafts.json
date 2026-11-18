@@ -44,5 +44,18 @@
    "fp": "원본 기준으로는 정상 요청과 겹칠 가능성이 낮다고 봤지만 검증하지 않았습니다.",
    "check": "관리 인터페이스가 인터넷에 열려 있었는지, 장비 관리자 계정이나 SSH 키가 새로 추가되지 않았는지, 펌웨어가 패치된 버전인지 확인하세요. 장비의 웹 접근 로그를 SIEM으로 보내고 있어야 이 룰이 동작합니다."
   }
+ },
+ {
+  "id": "2ee17d9b-12e7-491b-852e-c5fc76dda9e2",
+  "product": "Java 실행환경 (Java4Shell)",
+  "cves": [],
+  "yaml": "title: Java Fatal Error Log Created - Possible Java4Shell (CVE-2026-114938) Memory Corruption Attempt\nid: 2ee17d9b-12e7-491b-852e-c5fc76dda9e2\nstatus: experimental\ndescription: |\n    Detects creation of a HotSpot JVM fatal error log (hs_err_pid<PID>.log), which a JVM writes when the process crashes.\n    Memory corruption bugs such as CVE-2026-114938 (Java4Shell, Base64 decoder) can crash the JVM when an exploit attempt fails,\n    so a crash file on an internet-facing Java service is a weak, indirect signal worth reviewing.\n    DRAFT: heuristic, not an exploit signature. No public indicators of compromise were available for this CVE when this was written,\n    a successful exploit may not crash the JVM, and the rule was not validated against real logs.\nreferences:\n    - https://www.dailysecu.com/news/articleView.html?idxno=209580\n    - https://www.boannews.com/news/articleView.html?idxno=147336\nauthor: Sprout Security (draft written with Claude, unreviewed)\ndate: 2026-11-18\ntags:\n    - attack.initial-access\n    - attack.t1190\n    - cve.2026-114938\n    - detection.threat-hunting\nlogsource:\n    category: file_event\ndetection:\n    selection:\n        TargetFilename|contains:\n            - '/hs_err_pid'\n            - '\\hs_err_pid'\n        TargetFilename|endswith: '.log'\n    condition: selection\nfalsepositives:\n    - Any JVM crash unrelated to an attack (application bugs, out-of-memory conditions, native library faults, container memory limits)\n    - Developer workstations and test servers\nlevel: low\n",
+  "ko": {
+   "summary": "자바 프로그램이 치명적 오류로 멈출 때 남기는 기록 파일(hs_err_pid)이 생기는 것을 잡는 보조용 초안입니다. 공격 문자열을 잡는 룰이 아닙니다.",
+   "what": "파일 이름에 'hs_err_pid'가 들어가고 '.log'로 끝나는 파일이 만들어지면 경보를 냅니다. 자바 가상머신(JVM)은 치명적 오류로 멈출 때 이 이름의 기록을 남깁니다. Java4Shell(CVE-2026-114938)처럼 메모리를 잘못 덮어쓰는 결함은 공격 시도가 어긋나면 프로그램이 멈출 수 있어, 인터넷에 공개된 자바 서비스에서 이 파일이 갑자기 생기면 점검해 볼 만한 단서가 됩니다. 이 취약점은 공개된 공격 지표(침해지표)가 아직 없어서 공격 요청의 모양을 잡는 룰은 쓰지 않았습니다. 공격이 성공하면 멈추지 않을 수 있어 놓치는 경우가 많습니다.",
+   "analogy": "도둑이 열쇠를 억지로 돌리다 열쇠가 부러지면 문 앞에 조각이 남는 것과 같습니다. 그 조각을 알아채는 룰입니다. 다만 도둑이 조용히 문을 열고 들어가면 조각은 남지 않습니다.",
+   "fp": "공격과 무관한 자바 오류(프로그램 버그, 메모리 부족, 외부 라이브러리 문제, 컨테이너 메모리 제한 등)로도 같은 파일이 생기므로 오탐이 많을 수 있습니다. 개발·테스트 서버에서도 자주 생깁니다.",
+   "check": "파일이 생긴 서버가 인터넷에 공개된 서비스인지, 사용 중인 자바가 패치된 빌드인지 먼저 보세요. 생성 시각 전후에 형식이 깨진 입력이 들어왔는지와 같은 시각 전후에 자바 프로세스가 셸을 띄운 기록이 있는지도 확인하세요(기존 Sigma 룰 ‘Suspicious Java Children Processes’, ‘Suspicious Processes Spawned by Java.EXE’로 볼 수 있습니다). 파일 이벤트 로그(Sysmon 등)에 TargetFilename 필드가 남는지도 먼저 확인해야 합니다."
+  }
  }
 ]

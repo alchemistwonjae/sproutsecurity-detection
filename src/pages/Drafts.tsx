@@ -16,11 +16,11 @@ export function Drafts() {
   return (
     <>
       <PageHead
-        title="룰 초안: 실제 악용 중인데 룰이 없는 취약점"
-        lead="탐지 공백 중 공개된 공격 요청 패턴이 비교적 분명한 것부터 룰 초안을 만들었습니다. SigmaHQ에 기여하기 전 단계의 작업 노트입니다."
+        title="룰 초안: 탐지 룰이 부족한 취약점"
+        lead="탐지 공백 중 공개된 공격 요청 패턴이 비교적 분명한 것과, 공격 지표가 아직 없는 최신 취약점의 보조 탐지를 룰 초안으로 만들었습니다. SigmaHQ에 기여하기 전 단계의 작업 노트입니다."
       />
       <p className="notice">
-        <strong>검증 전 초안입니다.</strong> 공개된 공격 사례의 요청 패턴을 바탕으로 AI가 작성했고, 실제 로그나 PoC 트래픽으로 시험하지 않았으며 SigmaHQ에 제출하지 않았습니다. 운영 환경에 넣기 전에 벤더 권고문·재현 로그와 대조하고 오탐을 확인하세요. 제품을 고른 기준은 기업 환경에서 흔한 VPN·엣지 장비라는 점이며, 국내 점유율을 확인한 것은 아닙니다.
+        <strong>검증 전 초안입니다.</strong> 공개된 공격 사례의 요청 패턴을 바탕으로 AI가 작성했고, 실제 로그나 PoC 트래픽으로 시험하지 않았으며 SigmaHQ에 제출하지 않았습니다. 운영 환경에 넣기 전에 벤더 권고문·재현 로그와 대조하고 오탐을 확인하세요. 제품을 고른 기준은 기업 환경에서 흔한 VPN·엣지 장비라는 점이며, 국내 점유율을 확인한 것은 아닙니다. Java4Shell 초안은 공개된 공격 지표가 없어 공격 요청이 아니라 JVM 비정상 종료 기록에 기대는 보조 탐지이며, 공격이 성공하면 못 잡을 수 있습니다.
       </p>
       {D.map((d) => (
         <article key={d.id} className="card">
@@ -33,7 +33,7 @@ export function Drafts() {
               <Link key={c} to={`/cves/${c}`} className={`chip${cves?.[c]?.kev ? ' chip-kev' : ''}`}>{c}{cves?.[c]?.kev ? ' ●' : ''}</Link>
             ))}{' '}
             <span className="muted small">
-              {d.cves.every((c) => cves?.[c] && cves[c].rules.length === 0) ? '현재 수집한 Sigma 룰에 이 CVE를 명시한 룰이 없습니다.' : ''}
+              {d.cves.length > 0 && d.cves.every((c) => cves?.[c] && cves[c].rules.length === 0) ? '현재 수집한 Sigma 룰에 이 CVE를 명시한 룰이 없습니다.' : ''}
             </span>
           </p>
           <h3>무엇을 잡나</h3>

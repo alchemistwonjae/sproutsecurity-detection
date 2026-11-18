@@ -71,7 +71,7 @@ export function Gaps({ search }: { search: string }) {
             <button key={v} type="button" className={`chip-btn${q === v ? ' on' : ''}`} onClick={() => set({ q: q === v ? '' : v })}>{v} <small>{n}</small></button>
           ))}
         </div>
-        <p className="small"><Link to="/drafts">룰 초안 보기 →</Link> (Ivanti·Cisco ASA·Fortinet 3건)</p>
+        <p className="small"><Link to="/drafts">룰 초안 보기 →</Link> (Ivanti·Cisco ASA·Fortinet·Java4Shell 4건)</p>
       </section>
       <div className="result-bar"><strong>{rows.length.toLocaleString()}건</strong></div>
       <ul className="rule-list">
