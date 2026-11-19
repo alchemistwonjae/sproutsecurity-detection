@@ -1,6 +1,7 @@
 // 수집 파이프라인: SigmaHQ 룰 + CISA KEV + MITRE ATT&CK (+ 선택: NVD) -> public/data/*.json
 // 소스는 이 스크립트가 실행될 때(빌드 시점)만 호출하고, 사이트는 만들어 둔 JSON만 읽습니다.
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
+import { promisify } from 'node:util';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { parse } from 'yaml';
@@ -13,6 +14,10 @@ const NVD_KEY = process.env.NVD_API_KEY || '';
 
 const KEV_URL = 'https://raw.githubusercontent.com/cisagov/kev-data/main/known_exploited_vulnerabilities.json';
 const ATTACK_URL = 'https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json';
+// CISA Vulnrichment(CC0): NVD가 비워 둔 점수·CWE·영향 제품을 CISA가 채운 CVE 기록. 경로는 <연도>/<번호÷1000>xxx/<CVE>.json
+const VR_BASE = 'https://raw.githubusercontent.com/cisagov/vulnrichment/develop';
+// Atomic Red Team(MIT): 기법별 테스트 목록. 데이터는 복사하지 않고 '테스트가 있는 기법 ID'만 가져와 링크 아웃에 씁니다.
+const ART_INDEX = 'https://raw.githubusercontent.com/redcanaryco/atomic-red-team/master/atomics/Indexes/Indexes-CSV/index.csv';
 const SIGMA_REPO = 'https://github.com/SigmaHQ/sigma';
 const SIGMA_BLOB = 'https://github.com/SigmaHQ/sigma/blob/master/';
 
@@ -38,6 +43,44 @@ const getJson = (url, headers = []) =>
       maxBuffer: 256 * 1024 * 1024,
     }).toString(),
   );
+
+const execFileP = promisify(execFile);
+// 404는 null(해당 파일 없음), 그 밖의 실패는 예외로 알립니다.
+const getTextOrNull = async (url) => {
+  try {
+    return (await execFileP('curl', ['-fsSL', '--max-time', '60', '--retry', '2', url], { maxBuffer: 64 * 1024 * 1024 })).stdout;
+  } catch (e) {
+    if (e.code === 22) return null;
+    throw e;
+  }
+};
+const pool = async (items, size, fn) => {
+  let i = 0;
+  await Promise.all(
+    Array.from({ length: size }, async () => {
+      while (i < items.length) await fn(items[i++]);
+    }),
+  );
+};
+
+// 따옴표 안의 쉼표를 지키는 한 줄 CSV 분해(이름에 쉼표가 있는 기법·테스트가 있어 split(',')로는 칸이 밀립니다)
+const csvLine = (line) => {
+  const out = [];
+  let cur = '';
+  let q = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (q) {
+      if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') q = false;
+      else cur += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ',') { out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur.replace(/\r$/, ''));
+  return out;
+};
 
 // 1) Sigma 저장소
 if (existsSync(SIGMA)) {
@@ -72,6 +115,26 @@ for (const o of objs.filter((o) => o.type === 'attack-pattern')) {
 }
 const attackVersion = attackRaw.objects.find((o) => o.type === 'x-mitre-collection')?.x_mitre_version ?? '';
 log(`attack: tactics ${tactics.length}, techniques ${Object.keys(techniques).length}, v${attackVersion}`);
+
+// 2-1) Atomic Red Team: 테스트가 있는 기법 ID -> 테스트 수 (실패해도 빌드는 계속, 링크만 빠짐)
+const atomics = {};
+try {
+  const csv = await getTextOrNull(ART_INDEX);
+  if (!csv) throw new Error('index.csv 없음');
+  const seen = new Set();
+  for (const line of csv.split('\n').slice(1)) {
+    const c = csvLine(line);
+    const t = c[1];
+    if (!/^T\d{4}(\.\d{3})?$/.test(t ?? '')) continue;
+    const key = `${t}|${c[3]}`; // 한 테스트가 여러 전술에 걸려 중복 줄이 생기므로 (기법, 테스트 번호)로 센다
+    if (seen.has(key)) continue;
+    seen.add(key);
+    atomics[t] = (atomics[t] ?? 0) + 1;
+  }
+  log(`atomics: 기법 ${Object.keys(atomics).length}개, 테스트 ${seen.size}개`);
+} catch (e) {
+  log('atomics: 가져오지 못해 건너뜀 —', e.message);
+}
 
 // 3) 룰 파싱
 const CVE_RE = /CVE-\d{4}-\d{4,}/gi;
@@ -196,6 +259,57 @@ if (NVD_KEY) {
   log('nvd: NVD_API_KEY 없음 — 건너뜀 (KEV 정보만 표시)');
 }
 
+// 6-1) CISA Vulnrichment: 룰이 참조하는 CVE + KEV 전체. 키가 필요 없고 NVD처럼 호출 제한이 빡빡하지 않습니다.
+// CISA ADP 컨테이너가 없는 CVE(보강 대상이 아닌 것)는 404라서 그냥 비워 둡니다.
+const vrOf = (rec) => {
+  const adp = (rec.containers?.adp ?? []).find((a) => a.providerMetadata?.shortName === 'CISA-ADP');
+  if (!adp) return null;
+  const out = {};
+  const ms = adp.metrics ?? [];
+  const cv = ms.map((m) => m.cvssV3_1).find(Boolean) ?? ms.map((m) => m.cvssV4_0).find(Boolean) ?? ms.map((m) => m.cvssV3_0).find(Boolean);
+  if (cv) out.cvss = { v: cv.version, score: cv.baseScore, severity: cv.baseSeverity, vector: cv.vectorString };
+  const ssvc = ms.find((m) => m.other?.type === 'ssvc')?.other?.content;
+  if (ssvc) {
+    const o = Object.assign({}, ...(ssvc.options ?? []));
+    out.ssvc = { exploitation: o.Exploitation ?? '', automatable: o.Automatable ?? '', impact: o['Technical Impact'] ?? '' };
+  }
+  const cwe = (adp.problemTypes ?? [])
+    .flatMap((p) => p.descriptions ?? [])
+    .filter((d) => d.type === 'CWE' && d.cweId)
+    .map((d) => ({ id: d.cweId, name: String(d.description ?? '').replace(d.cweId, '').trim() }));
+  if (cwe.length) out.cwe = cwe;
+  const products = (adp.affected ?? [])
+    .filter((a) => a.vendor || a.product)
+    .slice(0, 5)
+    .map((a) => ({
+      vendor: a.vendor ?? '',
+      product: a.product ?? '',
+      versions: (a.versions ?? []).filter((v) => v.status === 'affected' && v.version).slice(0, 5).map((v) => String(v.version)),
+    }));
+  if (products.length) out.products = products;
+  if (!Object.keys(out).length) return null;
+  const upd = adp.providerMetadata?.dateUpdated;
+  if (upd) out.updated = String(upd).slice(0, 10);
+  return out;
+};
+const vr = {};
+let vrFailed = 0;
+{
+  const targets = Object.keys(cves).filter((c) => /^CVE-\d{4}-\d+$/.test(c));
+  log(`vulnrichment: ${targets.length}건 조회`);
+  await pool(targets, 8, async (id) => {
+    const [, y, n] = /^CVE-(\d{4})-(\d+)$/.exec(id);
+    try {
+      const txt = await getTextOrNull(`${VR_BASE}/${y}/${Math.floor(Number(n) / 1000)}xxx/${id}.json`);
+      const v = txt ? vrOf(JSON.parse(txt)) : null;
+      if (v) vr[id] = v;
+    } catch {
+      vrFailed++; // 이번 실행에서는 건너뜀(다음 빌드에서 다시 시도)
+    }
+  });
+  log(`vulnrichment: ${Object.keys(vr).length}건 보강${vrFailed ? ` (조회 실패 ${vrFailed}건)` : ''}`);
+}
+
 // 7) 주간 신규 룰 (룰의 date 기준, 최근 8주)
 const monday = (d) => {
   const x = new Date(d + 'T00:00:00Z');
@@ -231,7 +345,8 @@ for (const r of rules) writeFileSync(join(OUT, 'rules', `${r.id}.json`), JSON.st
 const w = (n, o) => writeFileSync(join(OUT, n), JSON.stringify(o));
 w('rules-index.json', slim);
 w('cves.json', cves);
-w('attack.json', { version: attackVersion, tactics, techniques });
+w('attack.json', { version: attackVersion, tactics, techniques, atomics });
+w('vulnrichment.json', Object.fromEntries(Object.entries(vr).sort(([a], [b]) => (a < b ? -1 : 1))));
 w('weekly.json', weeks);
 w('meta.json', {
   builtAt: new Date().toISOString(),
@@ -239,5 +354,7 @@ w('meta.json', {
   kev: { catalogVersion: kevRaw.catalogVersion, dateReleased: kevRaw.dateReleased, count: Object.keys(kev).length },
   attack: { version: attackVersion },
   nvd: { enriched: nvdCount },
+  vulnrichment: { enriched: Object.keys(vr).length, failed: vrFailed },
+  atomics: { techniques: Object.keys(atomics).length },
 });
 log('완료 →', OUT);

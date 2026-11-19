@@ -97,7 +97,17 @@ export function RuleDetail({ id }: { id: string }) {
             {r.techniques.length ? (
               <ul className="plain">
                 {r.techniques.map((t) => (
-                  <li key={t}><Link to={`/rules?tech=${t}`} className="chip chip-soft">{t}</Link> {techName(t)}</li>
+                  <li key={t}>
+                    <Link to={`/rules?tech=${t}`} className="chip chip-soft">{t}</Link> {techName(t)}
+                    {attack?.atomics?.[t] && (
+                      <>
+                        {' '}
+                        <a className="small" href={`https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/${t}/${t}.md`} target="_blank" rel="noreferrer" title="이 기법을 흉내 내는 공개 테스트로, 내 환경의 탐지가 울리는지 확인할 때 씁니다">
+                          Atomic 테스트 {attack.atomics[t]}개 ↗
+                        </a>
+                      </>
+                    )}
+                  </li>
                 ))}
               </ul>
             ) : (
@@ -110,6 +120,9 @@ export function RuleDetail({ id }: { id: string }) {
           </dd>
         </dl>
         <p className="muted small">● 표시는 CISA KEV에 올라 실제 악용이 확인된 CVE입니다. ATT&CK는 가능한 모든 행동을 담지 않으므로 연결된 기법이 없거나 적다고 해서 위험이 낮다는 뜻은 아닙니다.</p>
+        {r.techniques.some((t) => attack?.atomics?.[t]) && (
+          <p className="muted small">‘Atomic 테스트’는 Red Canary의 Atomic Red Team(MIT)이 공개한 모의 공격 시나리오로, 소방 훈련처럼 경보(룰)가 실제로 울리는지 확인할 때 씁니다. 외부 저장소로 연결되며, 운영 서버가 아니라 테스트 환경에서만 실행하세요.</p>
+        )}
       </section>
 
       <section className="card">

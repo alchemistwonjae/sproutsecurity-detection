@@ -12,6 +12,7 @@ npm run dev         # http://localhost:5173
 ```
 
 - `NVD_API_KEY` 환경변수를 주면 룰이 참조하는 CVE와 KEV만 NVD에서 보강합니다(키 없으면 건너뜀). 키는 브라우저에 넣지 않고 Actions 시크릿에만 둡니다.
+- 수집 단계에서 CISA Vulnrichment(CC0)로 CVE의 CVSS·SSVC·CWE·영향 제품을 보강해 `public/data/vulnrichment.json`에 씁니다(CVE 상세 화면용, 키 불필요). Atomic Red Team(MIT)은 테스트가 있는 기법 ID만 `attack.json`의 `atomics`에 담아 룰 상세에서 링크 아웃합니다. 둘 다 가져오지 못하면 해당 정보만 빠지고 빌드는 계속됩니다.
 - 사이트는 빌드 시점에 만든 `public/data/*.json`만 읽습니다.
 - 한국어 해설은 `content/ko.json`(룰 ID → 해설)에 추가합니다. 없는 룰은 메타데이터 자동 요약 + 영문 원문을 보여 줍니다.
 - 고지 문구는 `src/lib/notices.ts` 한 곳에서 관리합니다.

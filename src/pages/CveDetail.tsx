@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
 import { Link } from '../lib/router';
 import { useData } from '../lib/data';
-import { fmtDate } from '../lib/labels';
+import { fmtDate, ssvcKo } from '../lib/labels';
 import { KevBadge, LevelBadge, Loading, StatusBadge } from '../components/ui';
-import type { CveMap, RuleSlim } from '../types';
+import type { CveMap, RuleSlim, VrMap } from '../types';
 
 export function CveDetail({ id }: { id: string }) {
   const cves = useData<CveMap>('cves.json');
   const idx = useData<RuleSlim[]>('rules-index.json');
+  // 보강 정보는 없어도 페이지가 떠야 하므로 로딩·오류를 기다리지 않는다
+  const vr = useData<VrMap>('vulnrichment.json').data?.[id];
   useEffect(() => {
     document.title = `${id} 탐지 룰 — Sprout Security Detection Hub`;
   }, [id]);
@@ -56,7 +58,7 @@ export function CveDetail({ id }: { id: string }) {
         {c.nvd ? (
           <>
             <dl className="kv">
-              <dt>CVSS</dt><dd>{c.nvd.enriched ? `${c.nvd.score} (${c.nvd.severity})` : 'NVD가 아직 점수를 보강하지 않았습니다'}</dd>
+              <dt>CVSS</dt><dd>{c.nvd.enriched ? `${c.nvd.score} (${c.nvd.severity})` : `NVD가 아직 점수를 보강하지 않았습니다${vr?.cvss ? ' (아래 CISA 보강 점수 참고)' : ''}`}</dd>
               <dt>공개일</dt><dd>{fmtDate(c.nvd.published ?? '')}</dd>
             </dl>
             <blockquote lang="en" className="orig"><small>설명(영문, NVD)</small>{c.nvd.desc}</blockquote>
@@ -70,6 +72,57 @@ export function CveDetail({ id }: { id: string }) {
           <a href={`https://otx.alienvault.com/indicator/cve/${id}`} target="_blank" rel="noreferrer">AlienVault OTX ↗</a>
         </p>
       </section>
+
+      {vr && (
+        <section className="card">
+          <h2>CISA 보강 정보 (Vulnrichment)</h2>
+          <p className="muted small">NVD가 비워 둔 칸을 CISA가 대신 채운 정보입니다. SSVC는 응급실 분류표처럼 ‘지금 급하게 손봐야 하나’를 악용 상황·자동화 가능성·피해 크기 세 가지 질문으로 매긴 CISA의 판단입니다.</p>
+          <dl className="kv">
+            {vr.cvss && (
+              <>
+                <dt>CVSS (CISA)</dt>
+                <dd>{vr.cvss.score} ({vr.cvss.severity}) · v{vr.cvss.v} <code>{vr.cvss.vector}</code></dd>
+              </>
+            )}
+            {vr.ssvc && (
+              <>
+                <dt>악용 상황</dt><dd>{ssvcKo('exploitation', vr.ssvc.exploitation)}</dd>
+                <dt>자동화 공격</dt><dd>{ssvcKo('automatable', vr.ssvc.automatable)}</dd>
+                <dt>기술적 영향</dt><dd>{ssvcKo('impact', vr.ssvc.impact)}</dd>
+              </>
+            )}
+            {vr.cwe && (
+              <>
+                <dt>약점 유형(CWE)</dt>
+                <dd>
+                  <ul className="plain">
+                    {vr.cwe.map((w) => (
+                      <li key={w.id}>
+                        <a href={`https://cwe.mitre.org/data/definitions/${w.id.replace(/^CWE-/, '')}.html`} target="_blank" rel="noreferrer">{w.id} ↗</a> {w.name}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </>
+            )}
+            {vr.products && (
+              <>
+                <dt>영향 제품</dt>
+                <dd>
+                  <ul className="plain">
+                    {vr.products.map((p) => (
+                      <li key={`${p.vendor}/${p.product}`}>{p.vendor} {p.product}{p.versions.length ? ` — ${p.versions.join(', ')}` : ''}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </>
+            )}
+          </dl>
+          <p className="small">
+            출처: <a href="https://github.com/cisagov/vulnrichment" target="_blank" rel="noreferrer">CISA Vulnrichment ↗</a> (CC0 1.0){vr.updated ? ` · CISA 갱신 ${fmtDate(vr.updated)}` : ''}. 원본이 바뀔 수 있어 매일 다시 가져옵니다.
+          </p>
+        </section>
+      )}
     </article>
   );
 }
