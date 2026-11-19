@@ -19,7 +19,18 @@ export interface Attack {
   version: string;
   tactics: { short: string; name: string; id?: string }[];
   techniques: Record<string, { name: string; tactics: string[] }>;
+  /** Atomic Red Team에 테스트가 있는 기법 ID -> 테스트 수 */
+  atomics?: Record<string, number>;
 }
+/** CISA Vulnrichment(CISA ADP 컨테이너)가 채운 정보. CISA가 보강한 CVE만 들어 있다. */
+export interface Vr {
+  cvss?: { v: string; score: number; severity: string; vector: string };
+  ssvc?: { exploitation: string; automatable: string; impact: string };
+  cwe?: { id: string; name: string }[];
+  products?: { vendor: string; product: string; versions: string[] }[];
+  updated?: string;
+}
+export type VrMap = Record<string, Vr>;
 export interface Week { week: string; added: string[]; modified: string[] }
 export interface Meta {
   builtAt: string;
@@ -27,5 +38,7 @@ export interface Meta {
   kev: { catalogVersion: string; dateReleased: string; count: number };
   attack: { version: string };
   nvd: { enriched: number };
+  vulnrichment?: { enriched: number; failed: number };
+  atomics?: { techniques: number };
 }
 export interface KoNote { summary: string; what: string; analogy?: string; fp: string; check: string }

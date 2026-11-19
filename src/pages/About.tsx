@@ -26,12 +26,14 @@ export function About() {
             <tr><td>MITRE ATT&amp;CK®</td><td>기법 분류·이름</td><td>MITRE 저작권 고지 유지</td></tr>
             <tr><td>NVD API</td><td>CVE 설명·점수(룰이 참조하는 CVE와 KEV만)</td><td>NVD 고지 문구 표시</td></tr>
             <tr><td>CISA KEV</td><td>실제 악용 CVE 목록</td><td>CC0 1.0</td></tr>
+            <tr><td>CISA Vulnrichment</td><td>NVD가 비워 둔 CVSS·SSVC·CWE·영향 제품 보강(룰이 참조하는 CVE와 KEV만)</td><td>CC0 1.0</td></tr>
+            <tr><td>Atomic Red Team</td><td>ATT&amp;CK 기법별 모의 공격 테스트가 있는지 확인해 링크 아웃(내용은 복사하지 않음)</td><td>MIT</td></tr>
             <tr><td>AlienVault OTX</td><td>—</td><td>약관상 재게시·표시가 어려워 데이터를 쓰지 않고 링크 아웃만 합니다</td></tr>
           </tbody>
         </table>
         {meta && (
           <p className="muted small">
-            현재 데이터: SigmaHQ 룰 {meta.sigma.rules.toLocaleString()}개(커밋 {meta.sigma.commit.slice(0, 7)}, {meta.sigma.date}) · KEV {meta.kev.count.toLocaleString()}건(카탈로그 {meta.kev.catalogVersion}) · NVD 보강 {meta.nvd.enriched.toLocaleString()}건 · 빌드 {meta.builtAt.slice(0, 16).replace('T', ' ')} UTC
+            현재 데이터: SigmaHQ 룰 {meta.sigma.rules.toLocaleString()}개(커밋 {meta.sigma.commit.slice(0, 7)}, {meta.sigma.date}) · KEV {meta.kev.count.toLocaleString()}건(카탈로그 {meta.kev.catalogVersion}) · NVD 보강 {meta.nvd.enriched.toLocaleString()}건{meta.vulnrichment ? ` · CISA 보강 ${meta.vulnrichment.enriched.toLocaleString()}건` : ''}{meta.atomics ? ` · Atomic 테스트 보유 기법 ${meta.atomics.techniques}개` : ''} · 빌드 {meta.builtAt.slice(0, 16).replace('T', ' ')} UTC
           </p>
         )}
       </section>

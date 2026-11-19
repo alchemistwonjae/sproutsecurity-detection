@@ -40,6 +40,15 @@ export const TACTIC_KO: Record<string, string> = {
 };
 export const tacticKo = (t: string) => TACTIC_KO[t] ?? t;
 
+// CISA SSVC(Exploitation / Automatable / Technical Impact) 값의 한국어 표기. 모르는 값은 원문을 그대로 보여 준다.
+export const SSVC_KO = {
+  exploitation: { none: '악용 사례 없음', poc: '공개된 시연 코드(PoC) 있음', active: '실제 악용 중' },
+  automatable: { yes: '자동화 공격 가능', no: '자동화 어려움' },
+  impact: { partial: '일부 영향', total: '시스템 전체 장악 가능' },
+} as const;
+export const ssvcKo = (kind: keyof typeof SSVC_KO, v: string) =>
+  (SSVC_KO[kind] as Record<string, string>)[v.toLowerCase()] ?? (v || '-');
+
 export const KIND_KO: Record<string, string> = {
   core: '일반 탐지',
   emerging: '신규 위협·취약점',
