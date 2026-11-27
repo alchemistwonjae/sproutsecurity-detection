@@ -5,11 +5,44 @@ import { useData } from '../lib/data';
 import type { CveMap } from '../types';
 import drafts from '../../content/drafts.json';
 
-interface Draft {
+export interface Draft {
   id: string; product: string; cves: string[]; yaml: string;
   ko: { summary: string; what: string; analogy: string; fp: string; check: string };
 }
-const D = drafts as Draft[];
+export const D = drafts as Draft[];
+
+export const DRAFT_NOTICE =
+  '검증 전 초안입니다. 공개된 공격 사례의 요청 패턴을 바탕으로 AI가 작성했고, 실제 로그나 PoC 트래픽으로 시험하지 않았으며 SigmaHQ에 제출하지 않았습니다. 운영 환경에 넣기 전에 벤더 권고문·재현 로그와 대조하고 오탐을 확인하세요.';
+
+export function DraftCard({ d, link }: { d: Draft; link?: boolean }) {
+  const cves = useData<CveMap>('cves.json').data;
+  return (
+        <article className="card">
+    <h2>
+      {link ? <Link to={`/drafts/${d.id}`}>{d.product}</Link> : d.product} <span className="badge st-experimental">초안</span> <span className="badge ai">AI 작성</span>
+    </h2>
+    <p className="lead-line">{d.ko.summary}</p>
+    <p>
+      {d.cves.map((c) => (
+        <Link key={c} to={`/cves/${c}`} className={`chip${cves?.[c]?.kev ? ' chip-kev' : ''}`}>{c}{cves?.[c]?.kev ? ' ●' : ''}</Link>
+      ))}{' '}
+      <span className="muted small">
+        {d.cves.length > 0 && d.cves.every((c) => cves?.[c] && cves[c].rules.length === 0) ? '현재 수집한 Sigma 룰에 이 CVE를 명시한 룰이 없습니다.' : ''}
+      </span>
+    </p>
+    <h3>무엇을 잡나</h3>
+    <p>{d.ko.what}</p>
+    <p className="analogy"><strong>쉽게 말하면</strong> {d.ko.analogy}</p>
+    <h3>언제 오탐이 나나</h3>
+    <p>{d.ko.fp}</p>
+    <h3>확인할 것</h3>
+    <p>{d.ko.check}</p>
+    <h3>Sigma YAML (초안)</h3>
+    <pre className="code" lang="yaml"><code>{d.yaml}</code></pre>
+    {link && <p className="small"><Link to={`/drafts/${d.id}`}>이 초안만 따로 보기 →</Link></p>}
+        </article>
+  );
+}
 
 export function Drafts() {
   const cves = useData<CveMap>('cves.json').data;
@@ -22,31 +55,7 @@ export function Drafts() {
       <p className="notice">
         <strong>검증 전 초안입니다.</strong> 공개된 공격 사례의 요청 패턴을 바탕으로 AI가 작성했고, 실제 로그나 PoC 트래픽으로 시험하지 않았으며 SigmaHQ에 제출하지 않았습니다. 운영 환경에 넣기 전에 벤더 권고문·재현 로그와 대조하고 오탐을 확인하세요. 제품을 고른 기준은 기업 환경에서 흔한 VPN·엣지 장비라는 점이며, 국내 점유율을 확인한 것은 아닙니다. Java4Shell 초안은 공개된 공격 지표가 없어 공격 요청이 아니라 JVM 비정상 종료 기록에 기대는 보조 탐지이며, 공격이 성공하면 못 잡을 수 있습니다.
       </p>
-      {D.map((d) => (
-        <article key={d.id} className="card">
-          <h2>
-            {d.product} <span className="badge st-experimental">초안</span> <span className="badge ai">AI 작성</span>
-          </h2>
-          <p className="lead-line">{d.ko.summary}</p>
-          <p>
-            {d.cves.map((c) => (
-              <Link key={c} to={`/cves/${c}`} className={`chip${cves?.[c]?.kev ? ' chip-kev' : ''}`}>{c}{cves?.[c]?.kev ? ' ●' : ''}</Link>
-            ))}{' '}
-            <span className="muted small">
-              {d.cves.length > 0 && d.cves.every((c) => cves?.[c] && cves[c].rules.length === 0) ? '현재 수집한 Sigma 룰에 이 CVE를 명시한 룰이 없습니다.' : ''}
-            </span>
-          </p>
-          <h3>무엇을 잡나</h3>
-          <p>{d.ko.what}</p>
-          <p className="analogy"><strong>쉽게 말하면</strong> {d.ko.analogy}</p>
-          <h3>언제 오탐이 나나</h3>
-          <p>{d.ko.fp}</p>
-          <h3>확인할 것</h3>
-          <p>{d.ko.check}</p>
-          <h3>Sigma YAML (초안)</h3>
-          <pre className="code" lang="yaml"><code>{d.yaml}</code></pre>
-        </article>
-      ))}
+      {D.map((d) => <DraftCard key={d.id} d={d} link />)}
       <section className="card">
         <h2>SigmaHQ에 기여하려면</h2>
         <ol>

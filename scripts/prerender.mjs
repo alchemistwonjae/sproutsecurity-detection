@@ -13,6 +13,7 @@ const LEVEL = { critical: '치명', high: '높음', medium: '보통', low: '낮�
 const tpl = readFileSync(join(DIST, 'index.html'), 'utf8');
 const json = (p) => JSON.parse(readFileSync(join(DIST, 'data', p), 'utf8'));
 const ko = JSON.parse(readFileSync(join(ROOT, 'content', 'ko.json'), 'utf8'));
+const drafts = JSON.parse(readFileSync(join(ROOT, 'content', 'drafts.json'), 'utf8'));
 const idx = json('rules-index.json');
 const cves = json('cves.json');
 const meta = json('meta.json');
@@ -102,9 +103,23 @@ for (const [id, c] of Object.entries(cves)) {
   nCve++;
 }
 
+// 3-1) 룰 초안 페이지 (검증 전 초안임을 제목·설명·본문에 분명히 적습니다)
+let nDraft = 0;
+for (const d of drafts) {
+  const title = `${d.product} 탐지 룰 초안(검증 전) | ${BRAND}`;
+  const desc = clip(`${d.ko.summary} ${d.cves.join(', ')}. 검증 전 AI 작성 초안입니다.`, 160);
+  const path = `/drafts/${d.id}`;
+  const body = `<main><article><h1>${esc(d.product)} 탐지 룰 초안</h1><p><strong>검증 전 초안입니다.</strong> 실제 로그로 시험하지 않았고 SigmaHQ에 제출하지 않았습니다.</p><p>${esc(d.ko.summary)}</p>` +
+    `<p>관련 CVE: ${d.cves.map((c) => `<a href="/cves/${c}">${c}</a>`).join(', ')}</p><h2>무엇을 잡나</h2><p>${esc(d.ko.what)}</p><h2>언제 오탐이 나나</h2><p>${esc(d.ko.fp)}</p><p><a href="/drafts">룰 초안 목록</a></p></article></main>`;
+  const ld = { '@context': 'https://schema.org', '@type': 'TechArticle', headline: `${d.product} 탐지 룰 초안(검증 전)`, description: desc, inLanguage: 'ko', url: SITE + path };
+  write(path, page({ path, title, desc, body, ld }));
+  add(path, meta.builtAt?.slice(0, 10));
+  nDraft++;
+}
+
 // 4) sitemap.xml, robots.txt
 const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
   urls.map((u) => `  <url><loc>${SITE}${u.path === '/' ? '/' : u.path}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}</url>`).join('\n') + '\n</urlset>\n';
 writeFileSync(join(DIST, 'sitemap.xml'), xml);
 writeFileSync(join(DIST, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /data/\n\nSitemap: ${SITE}/sitemap.xml\n`);
-console.log(`prerender: 고정 ${STATIC.length}, 룰 ${nRule}, CVE ${nCve}, sitemap ${urls.length}개`);
+console.log(`prerender: 고정 ${STATIC.length}, 룰 ${nRule}, CVE ${nCve}, 초안 ${nDraft}, sitemap ${urls.length}개`);
